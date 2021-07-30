@@ -1,0 +1,325 @@
+AirlineManagementSystemApplication.Java
+
+
+package com.example.demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import javax.sql.DataSource;
+
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+
+@SpringBootApplication
+public class AirlineManagementSystemApplication {
+	
+	@Bean
+	JdbcTemplate getJdbcTemplate(DataSource dataSource) {
+	    JdbcTemplate jdbcTemplate = new JdbcTemplate();
+	    jdbcTemplate.setDataSource(dataSource);
+	    jdbcTemplate.setQueryTimeout(20); 
+	    jdbcTemplate.setFetchSize(10);  
+	    return jdbcTemplate;
+	}
+
+	public static void main(String[] args) {
+		SpringApplication.run(AirlineManagementSystemApplication.class, args);
+		System.out.println("Hello world");
+		
+	}
+
+}
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+PassengerController.java
+----------------------------------
+package com.example.demo.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.entity.Passenger;
+import com.example.demo.service.PassengerService;
+
+
+@RestController
+@CrossOrigin({"http://localhost:4200","*"})
+public class PassengerController {
+		@Autowired
+		private PassengerService  ps;
+		
+		@PostMapping("/passenger")
+        public int signup(@RequestBody Passenger passenger)
+     	{
+			return ps.create(passenger);
+		}
+		
+		@GetMapping("/passenger")
+		public List<Passenger> getAllPassenger()
+		{
+			return ps.read();
+		}
+		
+		@GetMapping("/passenger/{id}")
+		public Passenger findCustomerById(@PathVariable Long id)
+		{
+			return ps.read(id);
+		}
+		
+		
+		
+		@PutMapping("/passenger")
+		public int modifyPassenger(@RequestBody Passenger passenger)
+		{
+			return ps.update(passenger);
+		}
+		
+		@DeleteMapping("/passenger/{id}")
+		public int removePassenger(@PathVariable Long id)
+		{
+			return ps.delete(id);
+		}
+	}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+passengerDao.java
+----------------------------
+package com.example.demo.dao;
+
+import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.entity.Passenger;
+
+@Repository
+public interface PassengerDao {
+
+		int create(Passenger passenger);
+
+		List<Passenger> read();
+
+		Passenger read(Long id);
+
+		int update(Passenger passenger);
+
+		int delete(Long id);
+
+
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+passegerDaoImpl
+--------------------------
+
+package com.example.demo.dao;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import com.example.demo.entity.Passenger;
+
+@Component
+public class PassengerDaoImpl implements PassengerDao {
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	@Override
+	public int create(Passenger passenger) {
+		return jdbcTemplate.update("INSERT INTO PASSENGER VALUES (?,?,?,?,?)", passenger.getId(), passenger.getFirstName(), passenger.getLastName(), passenger.getAge(), passenger.getGender());
+	}
+	@Override
+	public List<Passenger> read() {
+		return jdbcTemplate.query("SELECT * FROM PASSENGER", new PassengerRowMapper());
+	}
+	@Override
+	public Passenger read(Long id) {
+		return jdbcTemplate.queryForObject("SELECT * FROM PASSENGER WHERE id=?", new PassengerRowMapper(), id);
+	}
+	@Override
+	public int update(Passenger passenger) {
+		return jdbcTemplate.update("UPDATE PASSENGER SET firstName=?, lastName=?, age=?, gender=? WHERE id=?", passenger.getFirstName(), passenger.getLastName(), passenger.getAge(), passenger.getGender(), passenger.getId()); 
+	}
+	@Override
+	public int delete(Long id) {
+		return jdbcTemplate.update("DELETE FROM PASSENGER WHERE id=?",id);
+	}
+	
+}
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+passengerRowMapper.java
+-----------------------------------
+
+package com.example.demo.dao;
+
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.springframework.jdbc.core.RowMapper;
+
+import com.example.demo.entity.Passenger;
+
+public class PassengerRowMapper implements RowMapper<Passenger>
+{
+
+	@Override
+	public Passenger mapRow(ResultSet rs, int rowNum) throws SQLException {
+			return new Passenger(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getString(5));
+	}
+
+}
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+passenger.java
+----------------------
+
+package com.example.demo.entity;
+
+
+	public class Passenger {
+		private Long id;
+	    private String firstName;
+	    private String lastName;
+	    private int age;
+	    private String gender;
+	    
+	    public Passenger() { }
+	    
+	    public Passenger(Long id, String firstName, String lastName, int age, String gender) {
+			super();
+			this.id = id;
+			this.firstName = firstName;
+			this.lastName = lastName;
+			this.age = age;
+			this.gender = gender;
+		}
+
+		public Long getId() {
+			return id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+		public String getFirstName() {
+			return firstName;
+		}
+
+		public void setFirstName(String firstName) {
+			this.firstName = firstName;
+		}
+
+		public String getLastName() {
+			return lastName;
+		}
+
+		public void setLastName(String lastName) {
+			this.lastName = lastName;
+		}
+
+		public int getAge() {
+			return age;
+		}
+
+		public void setAge(int age) {
+			this.age = age;
+		}
+
+		public String getGender() {
+			return gender;
+		}
+
+		public void setGender(String gender) {
+			this.gender = gender;
+		}
+
+		@Override
+		public String toString() {
+			return "Passenger [id=" + id  + ", firstName=" + firstName + ", lastName="
+					+ lastName + ", age=" + age + ", gender=" + gender + "]";
+		}
+	   
+	}
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+passengerservice.java
+------------------------------
+
+package com.example.demo.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.dao.PassengerDao;
+import com.example.demo.entity.Passenger;
+
+
+@Service
+public class PassengerService {
+		@Autowired
+		private PassengerDao pdao;
+		
+		public int create(Passenger passenger)
+		{
+			return pdao.create(passenger);
+		}
+
+		public List<Passenger> read()
+		{
+			return pdao.read();
+		}
+
+		public Passenger read(Long id)
+		{
+			return pdao.read(id);
+		}
+
+		public int update(Passenger passenger)
+		{
+			return pdao.update(passenger);
+		}
+
+		public int delete(Long id)
+		{
+			return pdao.delete(id);
+		}
+	
+
+}
+
+	
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sql database
+-----------------
+
+create table Passenger
+(
+    id         bigint primary key,
+    bookingId varchar(20),
+    name       varchar(20),
+    age        integer(5),
+    gender     varchar(6)
+);	
+	
