@@ -1,0 +1,62 @@
+Table:flight
+create table flight (
+id int Primary key not null,
+flightNumber varchar(45) not null,
+flightName varchar(45) not null,
+model varchar(45) not null,
+type varchar(45) not null,
+economySeats int not null,
+businessSeats int not null,
+firstClassSeats int not null
+);
+
+
+Table:booking
+create table booking(
+id bigint Primary key not null,
+schedule_id bigint not null,
+classtype varchar(45) not null,
+passengers int not null,
+user_id bigint not null
+);
+
+table:schedule
+create table schedule (
+id bigint Primary key not null, 
+flight_id bigint not null, 
+sdate date not null,
+stime time not null,
+source varchar(45) not null,
+destination varchar(45) not null,
+duration int not null,
+atime time not null
+);
+
+
+Table: passengerdetails
+Columns:
+id bigint(20) PK 
+booking_id bigint(20) 
+salutation varchar(6) 
+firstName varchar(20) 
+lastName varchar(20) 
+age bigint(20) 
+gender varchar(6)
+
+
+Table: userdetails
+Columns:
+id int(11) PK 
+username varchar(45) 
+password varchar(16) 
+email varchar(45) 
+pnumber bigint(20) 
+dob date 
+gender varchar(6) 
+role varchar(5)
+
+
+insert into userdetails values(2,"Rama patel","Rama@98","rama@gmail.com",8096901045,"1998-10-29","Female","user");
+
+
+
